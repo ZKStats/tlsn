@@ -6,6 +6,7 @@ use http_body_util::{BodyExt, Empty};
 use hyper::{body::Bytes, Request, StatusCode};
 use hyper_util::rt::TokioIo;
 use notary_client::{Accepted, NotarizationRequest, NotaryClient};
+use serde::{Deserialize, Serialize};
 use std::{env, ops::Range, str};
 use tlsn_core::proof::TlsProof;
 use tlsn_prover::tls::{Prover, ProverConfig};
@@ -129,6 +130,14 @@ async fn main() {
         serde_json::from_str::<serde_json::Value>(&String::from_utf8_lossy(&payload)).unwrap();
     debug!("{}", serde_json::to_string_pretty(&parsed).unwrap());
 
+    let root: Root = serde_json::from_str(&String::from_utf8_lossy(&payload)).unwrap();
+    root.sP_IHKE3101S01_Data_1.iter().for_each(|d| {
+        // personal expense
+        println!("personal expense: {:?}", d.parT_AMT);
+        // health insurance point
+        println!("health insurance point: {:?}", d.appL_DOT);
+    });
+
     // The Prover task should be done now, so we can grab it.
     let prover = prover_task.await.unwrap().unwrap();
 
@@ -225,4 +234,17 @@ fn find_ranges(seq: &[u8], sub_seq: &[&[u8]]) -> (Vec<Range<usize>>, Vec<Range<u
     }
 
     (public_ranges, private_ranges)
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct DataItem {
+    appL_DOT: u32,
+    cN_T: u32,
+    feE_Y: u32,
+    parT_AMT: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Root {
+    sP_IHKE3101S01_Data_1: Vec<DataItem>,
 }
